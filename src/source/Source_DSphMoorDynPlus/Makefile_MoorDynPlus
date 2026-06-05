@@ -1,0 +1,76 @@
+#MoorDynPlus v2.1.0 (10-06-2024)
+
+#=============== Compilation Options (YES/NO) ===============
+USE_DEBUG=NO
+USE_FAST_MATH=YES
+USE_NATIVE_CPU_OPTIMIZATIONS=NO
+USE_DSPH=YES
+
+EXECNAME=TestMoorDynPlus_linux64
+LIBNAME=libdsphmoordynplus_64.a
+
+LIBS_DIRECTORIES=-L./
+
+ifeq ($(GCC), 7)
+  LIBS=../../lib/linux_gcc7/$(LIBNAME)
+else
+  LIBS=../../lib/linux_gcc/$(LIBNAME)
+endif
+
+ifeq ($(USE_DEBUG), YES)
+  CCFLAGS=-c -O0 -g -Wall -static -static-libgcc -std=c++0x -DLINUX
+else
+  CCFLAGS=-c -O3 -static -static-libgcc -std=c++0x -DLINUX
+  ifeq ($(USE_FAST_MATH), YES)
+    CCFLAGS+= -ffast-math
+  endif
+  ifeq ($(USE_NATIVE_CPU_OPTIMIZATIONS), YES)
+    CCFLAGS+= -march=native
+  endif
+endif
+CC=g++
+CCLINKFLAGS=
+
+ifeq ($(USE_DSPH), NO)
+  CCFLAGS:=$(CCFLAGS) -DDISABLE_DSPH
+endif
+
+DIRTOOLS=../
+CCFLAGS+=-I$(DIRTOOLS)
+
+#=============== Files to compile ===============
+
+OBJTOOLS=$(DIRTOOLS)Functions.o $(DIRTOOLS)FunGeo3d.o $(DIRTOOLS)JDataArrays.o $(DIRTOOLS)JException.o $(DIRTOOLS)JLog2.o $(DIRTOOLS)JObject.o $(DIRTOOLS)JSaveCsv2.o $(DIRTOOLS)JRangeFilter.o
+OBJXML=$(DIRTOOLS)JXml.o $(DIRTOOLS)tinystr.o $(DIRTOOLS)tinyxml.o $(DIRTOOLS)tinyxmlerror.o $(DIRTOOLS)tinyxmlparser.o
+OBJSMOORDYNPLUS=MoorDynPlus.o IBody.o IConnection.o ILine.o Misc.o kiss_fft.o IEnvironment.o DSphMoorDynPlus.o IOutput.o IQSlines.o FunMoorDynPlus.o
+OBJECTS=$(OBJSMOORDYNPLUS) $(OBJTOOLS) $(OBJXML)
+ifeq ($(USE_DSPH), NO)
+	OBJECTS+= $(DIRTOOLS)JSpVtkShape.o
+endif
+
+#=============== CPU Code Compilation ===============
+COMPILE=$(LIBS)
+
+all:$(COMPILE)
+	rm -rf *.o Tools/*.o
+ifeq ($(USE_DEBUG), NO)
+	@echo "  --- Compiled MoorDynPlus Release mode ---"	
+else
+	@echo "  --- Compiled MoorDynPlus Debug mode ---"
+	mv $(EXECS_DIRECTORY)/$(EXECNAME) $(EXECS_DIRECTORY)/$(EXECNAME)_debug
+endif
+
+$(LIBS): $(OBJECTS)
+	ar -rv $@ $(OBJECTS) > /dev/null 2>&1
+
+$(EXECS_DIRECTORY)/$(EXECNAME): $(OBJECTS)
+	$(CC) $(OBJECTS) $(CCLINKFLAGS) -o $@ $(MLIBS)
+
+$(DIRTOOLS)%.o: $(DIRTOOLS)%.cpp
+	$(CC) $(CCFLAGS) -c $< -o $@
+
+.cpp.o: 
+	$(CC) $(CCFLAGS) -I./ $< 
+
+clean:
+	rm -rf *.o $(DIRTOOLS)*.o $(EXECS_DIRECTORY)/$(EXECNAME) $(EXECS_DIRECTORY)/$(EXECNAME)_debug $(LIBS)

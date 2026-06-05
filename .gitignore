@@ -1,0 +1,46 @@
+# Build artifacts
+*.o
+*.obj
+*.d
+*.dep
+*.mod
+*.ptx
+*.cubin
+*.fatbin
+*.log
+*.tmp
+*.temp
+
+# Local build directories
+build/
+Build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Makefile.user
+
+# DualSPHysics simulation outputs
+*_out/
+data/
+particles/
+boundary/
+floatinginfo/
+surface/
+vtks/
+Run.out
+Run.csv
+RunPARTs.csv
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python/cache helpers used during local maintenance
+__pycache__/
+.pytest_cache/
+.cache/

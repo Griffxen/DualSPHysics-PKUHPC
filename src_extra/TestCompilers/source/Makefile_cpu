@@ -1,0 +1,60 @@
+#DSTestCompilers CPU v1.01 05-03-2024
+
+#=============== Compilation Options (YES/NO) ===============
+USE_DEBUG=NO
+USE_FAST_MATH=YES
+USE_NATIVE_CPU_OPTIMIZATIONS=NO
+COMPILE_VTKLIB=YES
+
+LIBS_DIRECTORIES=-L./
+LIBS_DIRECTORIES:=$(LIBS_DIRECTORIES) -L../lib/linux_gcc
+
+EXECNAME=DSTestCompilersCPU_linux64
+EXECS_DIRECTORY=../bin
+
+# -std=c++0x ---> Used to avoid errors for calls to enums
+ifeq ($(USE_DEBUG), YES)
+  CCFLAGS=-c -O0 -g -Wall -fopenmp -std=c++0x
+else
+  CCFLAGS=-c -O3 -fopenmp -std=c++0x
+  ifeq ($(USE_FAST_MATH), YES)
+    CCFLAGS+= -ffast-math
+  endif
+  ifeq ($(USE_NATIVE_CPU_OPTIMIZATIONS), YES)
+    CCFLAGS+= -march=native
+  endif
+endif
+CC=g++
+CCLINKFLAGS=-fopenmp -lgomp
+
+ifeq ($(COMPILE_VTKLIB), NO)
+  CCFLAGS:=$(CCFLAGS) -DDISABLE_VTKLIB
+endif
+
+#=============== Files to compile ===============
+OBJECTS=Functions.o FunGeo3d.o JDataArrays.o JException.o JObject.o JRangeFilter.o main.o
+
+#=============== DualSPHysics libs to be included ===============
+JLIBS=${LIBS_DIRECTORIES}
+ifeq ($(COMPILE_VTKLIB), YES)
+  JLIBS:=$(JLIBS) -ljvtklib_64
+endif
+
+#=============== CPU Code Compilation ===============
+all:$(EXECS_DIRECTORY)/$(EXECNAME)
+	rm -rf *.o
+ifeq ($(USE_DEBUG), NO)
+	@echo "  --- Compiled Release CPU version ---"
+else
+	@echo "  --- Compiled Debug CPU version ---"
+	mv $(EXECS_DIRECTORY)/$(EXECNAME) $(EXECNAME)_debug
+endif
+
+$(EXECS_DIRECTORY)/$(EXECNAME):  $(OBJECTS)
+	$(CC) $(OBJECTS) $(CCLINKFLAGS) -o $@ $(JLIBS)
+
+.cpp.o: 
+	$(CC) $(CCFLAGS) $< 
+
+clean:
+	rm -rf *.o $(EXECNAME) $(EXECNAME)_debug
