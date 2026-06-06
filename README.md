@@ -37,6 +37,8 @@ bin/linux/DualSPHysics5.4CPU_linux64
 bin/linux/GenCase_linux64
 ```
 
+But because of the limitation of filesize, the solve banaries are not included here. You should compile them from codes or find them in offical DualSPHysics full packages <https://dual.sphysics.org/downloads/>.
+
 For a typical case, generate particles with `GenCase` and then run the GPU or
 CPU solver:
 
